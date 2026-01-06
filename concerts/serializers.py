@@ -7,6 +7,11 @@ class VenueSerializer(serializers.ModelSerializer):
         model = Venue
         fields = ['id', 'name', 'city', 'address', 'map_link']
 
+class VenueSlimSerializer(serializers.ModelSerializer):
+    """Light version (used only inside Concert detail lists)"""
+    class Meta:
+        model = Venue
+        fields = ["id", "name", "city"]
 
 # Serializer for compositions (inside each concert program)
 class CompositionSerializer(serializers.ModelSerializer):
@@ -22,12 +27,17 @@ class CompositionSerializer(serializers.ModelSerializer):
 class ConcertSerializer(serializers.ModelSerializer):
     program = CompositionSerializer(many=True, required= False)
     venue = serializers.PrimaryKeyRelatedField(queryset=Venue.objects.all())
+    venue_detail = VenueSlimSerializer(source="venue", read_only=True)  # <-- extra
 
     class Meta:
         model = Concert
         fields = [
-            'id', 'title', 'date', 'venue', 'description',
-            'ticket_link', 'event_link', 'is_public', 'created_at', 'program'
+            "id", "title", "slug",
+            "date_start", "date_end",
+            "venue","venue_detail",
+            "description",
+            "ticket_link", "event_link",
+            "is_public", "created_at", "program",
         ]
         read_only_fields = ('id', 'created_at')  # good practice
 
