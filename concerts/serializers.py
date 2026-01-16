@@ -7,11 +7,7 @@ class VenueSerializer(serializers.ModelSerializer):
         model = Venue
         fields = ['id', 'name', 'city', 'address', 'map_link']
 
-class VenueSlimSerializer(serializers.ModelSerializer):
-    """Light version (used only inside Concert detail lists)"""
-    class Meta:
-        model = Venue
-        fields = ["id", "name", "city"]
+
 
 # Serializer for compositions (inside each concert program)
 class CompositionSerializer(serializers.ModelSerializer):
@@ -27,14 +23,16 @@ class CompositionSerializer(serializers.ModelSerializer):
 class ConcertSerializer(serializers.ModelSerializer):
     program = CompositionSerializer(many=True, required= False)
     venue = serializers.PrimaryKeyRelatedField(queryset=Venue.objects.all())
-    venue_detail = VenueSlimSerializer(source="venue", read_only=True)  # <-- extra
+
+    venue_detail = VenueSerializer(source="venue", read_only=True)  # <-- extra
+    venue_update = VenueSerializer(write_only=True,required=False)
 
     class Meta:
         model = Concert
         fields = [
             "id", "title", "slug",
             "date_start", "date_end",
-            "venue","venue_detail",
+            "venue","venue_detail","venue_update",
             "description",
             "ticket_link", "event_link",
             "is_public", "created_at", "program",
@@ -43,6 +41,7 @@ class ConcertSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         program_data = validated_data.pop('program',[])
+        validated_data.pop("venue_update",None)
         concert = Concert.objects.create(**validated_data)
 
         for item in program_data:
@@ -51,15 +50,29 @@ class ConcertSerializer(serializers.ModelSerializer):
         return concert
 
     def update(self, instance, validated_data):
-        program_data = validated_data.pop('program', None)
+        program_data = validated_data.pop("program", None)
+        venue_payload = validated_data.pop("venue_update", None)
+
+        # Detect venue switching (safety)
+        incoming_venue = validated_data.get("venue", None)
+        switching_venue = incoming_venue is not None and incoming_venue != instance.venue
+        if switching_venue:
+            venue_payload = None
 
         # Update concert fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
 
+        # Update venue fields (if provided)
+        if venue_payload:
+            venue = instance.venue
+            for attr, value in venue_payload.items():
+                setattr(venue, attr, value)
+            venue.save()
+
+        # Update program
         if program_data is not None:
-            # Clear and recreate program list (simpler than complex updates)
             instance.program.all().delete()
             for item in program_data:
                 Composition.objects.create(concert=instance, **item)

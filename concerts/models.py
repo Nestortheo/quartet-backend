@@ -7,7 +7,7 @@ class Venue(models.Model):
     name = models.CharField(max_length=255)
     city = models.CharField(max_length=255)
     address = models.TextField(blank=True)        # optional, if you want full address
-    map_link = models.URLField(blank=True, null=True)
+    map_link = models.URLField(blank=True, null=True,max_length=1000)
 
     def __str__(self):
         return f"{self.name}, {self.city}"
