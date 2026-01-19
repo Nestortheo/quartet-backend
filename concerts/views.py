@@ -61,7 +61,7 @@ def contact(request):
     message = (request.data.get("message") or "").strip()
     company = (request.data.get("company") or "").strip()
 
-    if company:
+    if company and len(company) > 1:
         return Response({"ok": True})
 
     if not all([name, email, subject, message]):
@@ -70,10 +70,12 @@ def contact(request):
     full_subject = f"[Quartet Contact] {subject}"
     body = f"From: {name} <{email}>\n\n{message}"
 
+    from_email = settings.DEFAULT_FROM_EMAIL or settings.EMAIL_HOST_USER
+
     send_mail(
         subject=full_subject,
         message=body,
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        from_email=from_email,
         recipient_list=[getattr(settings, "CONTACT_RECEIVER_EMAIL", settings.DEFAULT_FROM_EMAIL)],
         fail_silently=False,
     )
