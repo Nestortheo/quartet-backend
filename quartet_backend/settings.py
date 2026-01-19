@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
+import dj_database_url
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -20,6 +21,8 @@ if os.getenv("ENV") != "production":
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+DATABASE_URL = os.getenv("DATABASE_URL")
+ENV = os.getenv("ENV")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -93,12 +96,37 @@ WSGI_APPLICATION = 'quartet_backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# ---- DATABASE CONFIG ----
+if ENV == "production":
+    if not DATABASE_URL:
+        raise RuntimeError("DATABASE_URL is required in production")
+
+    DATABASES = {
+        "default": dj_database_url.parse(DATABASE_URL)
     }
-}
+
+    # Neon / managed Postgres needs SSL
+    DATABASES["default"].setdefault("OPTIONS", {})
+    DATABASES["default"]["OPTIONS"]["sslmode"] = "require"
+
+else:
+    # Local development → SQLite
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+
+# Optional but recommended
+DATABASES["default"]["CONN_MAX_AGE"] = 600
+
+
+# ---- DEBUG PRINTS (remove later) ----
+print("DB ENGINE:", DATABASES["default"]["ENGINE"])
+print("DB NAME:", DATABASES["default"].get("NAME"))
+print("DB HOST:", DATABASES["default"].get("HOST"))
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
