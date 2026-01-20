@@ -54,11 +54,11 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    "corsheaders.middleware.CorsMiddleware",          # ← move high, before CommonMiddleware
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",  # ← keep only once
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -71,6 +71,15 @@ CORS_ALLOWED_ORIGINS = [
     "https://quartet-frontend.vercel.app"
 ]
 CORS_ALLOW_CREDENTIALS = True  # if you’ll use cookies at all (good to enable)
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.vercel.app",
+    "https://quartet-frontend.vercel.app",
+]
+
 
 ROOT_URLCONF = 'quartet_backend.urls'
 LOGIN_REDIRECT_URL = '/api/concerts/'
