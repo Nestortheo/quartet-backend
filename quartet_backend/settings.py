@@ -43,6 +43,7 @@ ALLOWED_HOSTS = [
 ]
 
 ALLOWED_HOSTS.append(".koyeb.app")
+ALLOWED_HOSTS.append("517b9866-ee22-420e-9bba-a1c700c65f08")
 print("ALLOWED_HOSTS =", ALLOWED_HOSTS)
 print("DEBUG =", DEBUG)
 print("ENV =", ENV)
