@@ -5,7 +5,7 @@ from .models import Venue, Concert, Composition
 class VenueSerializer(serializers.ModelSerializer):
     class Meta:
         model = Venue
-        fields = ['id', 'name', 'city', 'address', 'map_link']
+        fields = "__all__"
 
 
 

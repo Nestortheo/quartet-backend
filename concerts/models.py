@@ -6,6 +6,7 @@ from django.utils.text import slugify
 class Venue(models.Model):
     name = models.CharField(max_length=255)
     city = models.CharField(max_length=255)
+    imageUrl = models.URLField(blank=True)
     address = models.TextField(blank=True)        # optional, if you want full address
     map_link = models.URLField(blank=True, null=True,max_length=1000)
 
@@ -16,12 +17,15 @@ class Venue(models.Model):
 class Concert(models.Model):
     title = models.CharField(max_length=255, blank=True)
     slug = models.SlugField(max_length=255, unique=True, blank=True)
+
     date_start = models.DateTimeField(db_index=True)
     date_end = models.DateTimeField(null=True, blank=True)
+
     venue = models.ForeignKey("Venue", related_name="concerts", on_delete=models.PROTECT)
     description = models.TextField(blank=True)
     ticket_link = models.URLField(blank=True, null=True)
     event_link = models.URLField(blank=True, null=True)
+
     is_public = models.BooleanField(default=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
